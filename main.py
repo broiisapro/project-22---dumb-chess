@@ -1,7 +1,6 @@
 import tkinter as tk
 import chess
 import random
-import chess.svg
 
 # Create a main window
 root = tk.Tk()
@@ -78,7 +77,10 @@ def on_square_click(event):
         move = chess.Move(selected_square, clicked_square)
         if move in board.legal_moves:
             board.push(move)
-            ai_move()  # Let the AI move after the player move
+            if board.is_checkmate():
+                display_winner()
+            else:
+                ai_move()  # Let the AI move after the player move
         selected_square = None
 
     draw_board()  # Redraw the board with updated pieces
@@ -94,9 +96,15 @@ def ai_move():
         board.push(move)
 
     draw_board()
+    if board.is_checkmate():
+        display_winner()
 
 # Randomize the piece positions
 def randomize_pieces():
+    # Check if the game is already in checkmate
+    if board.is_checkmate():
+        return  # Don't randomize pieces if it's checkmate
+
     # Randomize only the starting pieces
     empty_squares = list(chess.SQUARES)
     random.shuffle(empty_squares)
@@ -121,6 +129,11 @@ def randomize_pieces():
         for _ in range(count):
             square = empty_squares.pop()
             board.set_piece_at(square, chess.Piece.from_symbol(piece))
+
+# Display the winner
+def display_winner():
+    winner = "White" if board.turn == chess.BLACK else "Black"
+    canvas.create_text(240, 240, text=f"{winner} Wins!", font=("Arial", 24), fill="red")
 
 # Bind mouse click event to the board
 canvas.bind("<Button-1>", on_square_click)
